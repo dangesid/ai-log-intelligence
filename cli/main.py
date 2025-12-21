@@ -1,11 +1,39 @@
 import typer 
 import requests
 from rich import print
+from cli.scanner.repo_scanner import scan_repo
 
 app = typer.Typer()
 
 API_URL = "http://127.0.0.1:8000"
 
+
+@app.command()
+def scan(
+    path : str = typer.Argument(
+        ".", help="Path to the repository to scan"
+    )
+):
+    """
+    Scan a repository and ingest logs automatically
+    """
+    print(f"[cyan] Scanning repository at {path} [/cyan]")
+    
+    logs = scan_repo(path)
+    if not logs:
+        print("[yellow] No error logs found in the repository. [/yellow]")
+        return
+    print(f"[green] Found {len(logs)} log entries .... [/green]")
+
+    payload = {"logs": logs}
+    r = requests.post(f"{API_URL}/ingest", json=payload)
+
+    if r.status_code == 200:
+        print(f"[bold green] Logs ingested successfully [/bold green]")
+    else:
+        print(f"[red] Failed to ingest logs: {r.text} [/red]")
+        print(r.text)
+    
 @app.command()
 def ingest(path: str):
     """
@@ -48,6 +76,26 @@ def query(question: str):
     print("\n[bold_green] AI Response: [/bold_green]")
     print(data["answer"])
 
+@app.command()
+def scan(path: str="."):
+    """
+    Scan a repo and ingest error logs automatically
+    """
+    print(f"[cyan] Scanning repository at {path} [/cyan]")
+
+    logs = scan_repo(path)
+    if not logs:
+        print("[yellow] No error logs found in the repository. [/yellow]")
+        return 
+    print(f"[green] Found {len(logs)} error logs. Ingesting... [/green]")
+
+    payload = {"logs": logs}
+    r = requests.post(f"{API_URL}/ingest", json=payload)
+
+    if r.status_code == 200:
+        print(f"[bold green] Logs ingested successfully [/bold green]")
+    else:
+        print(f"[red] Failed to ingest logs: {r.text} [/red]")
+
 if __name__ == "__main__":
     app()
-    
