@@ -196,6 +196,25 @@ ai-log query "Why is my app crashing?"
     python -m cli.main query "Any critical failures?"
 ```
 
+# End To End Usage 
+```yaml
+# Install tool
+pip install ai-log-intelligence
+
+# Start AI engine
+ollama serve
+python -m uvicorn backend.api.main:app --reload
+
+# Go to any repo
+cd my-app-repo
+
+# Scan logs
+ai-log scan .
+
+# Ask AI
+ai-log query "Why is my service crashing?"
+
+```
 ### Production incident analysis
 
 * Periodically ingest logs
